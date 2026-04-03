@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { getProducts, approveProduct, deleteProduct, getAllOrders, updateOrderStatus } from '../services/api'
+import { getAdminProducts, approveProduct, deleteProduct, getAllOrders, updateOrderStatus } from '../services/api'
 import { useAuth } from '../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
 
@@ -17,7 +17,7 @@ const AdminDashboard = () => {
 
     const fetchProducts = async () => {
         try {
-            const { data } = await getProducts()
+            const { data } = await getAdminProducts()
             setProducts(data)
         } catch (err) { console.log(err) }
     }
@@ -62,8 +62,12 @@ const AdminDashboard = () => {
 
             <div style={styles.main}>
                 <div style={styles.tabs}>
-                    <button style={activeTab === 'products' ? styles.activeTab : styles.tab} onClick={() => setActiveTab('products')}>Products</button>
-                    <button style={activeTab === 'orders' ? styles.activeTab : styles.tab} onClick={() => setActiveTab('orders')}>Orders</button>
+                    <button style={activeTab === 'products' ? styles.activeTab : styles.tab} onClick={() => setActiveTab('products')}>
+                        Products ({products.length})
+                    </button>
+                    <button style={activeTab === 'orders' ? styles.activeTab : styles.tab} onClick={() => setActiveTab('orders')}>
+                        Orders ({orders.length})
+                    </button>
                 </div>
 
                 {activeTab === 'products' && (
@@ -71,19 +75,28 @@ const AdminDashboard = () => {
                         <h2>All Products</h2>
                         {products.map(p => (
                             <div key={p._id} style={styles.card}>
-                                <div>
-                                    <h3>{p.name}</h3>
-                                    <p>₹{p.price} | {p.category} | Stock: {p.stock}</p>
-                                    <p>Seller: {p.seller?.name}</p>
-                                    <p style={{color: p.isApproved ? 'green' : 'orange'}}>
-                                        {p.isApproved ? '✅ Approved' : '⏳ Pending'}
-                                    </p>
-                                </div>
-                                <div>
-                                    {!p.isApproved && (
-                                        <button style={styles.approveBtn} onClick={() => handleApprove(p._id)}>Approve</button>
+                                <div style={styles.cardLeft}>
+                                    {p.images?.[0] && (
+                                        <img src={p.images[0]} alt={p.name} style={styles.productImg} />
                                     )}
-                                    <button style={styles.deleteBtn} onClick={() => handleDelete(p._id)}>Delete</button>
+                                    <div>
+                                        <h3 style={{margin:'0 0 0.5rem'}}>{p.name}</h3>
+                                        <p style={{margin:'0', color:'#666'}}>₹{p.price} | {p.category} | Stock: {p.stock}</p>
+                                        <p style={{margin:'0.25rem 0', color:'#888'}}>Seller: {p.seller?.name}</p>
+                                        <p style={{margin:'0', color: p.isApproved ? 'green' : 'orange'}}>
+                                            {p.isApproved ? '✅ Approved' : '⏳ Pending Approval'}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div style={styles.cardRight}>
+                                    {!p.isApproved && (
+                                        <button style={styles.approveBtn} onClick={() => handleApprove(p._id)}>
+                                            Approve
+                                        </button>
+                                    )}
+                                    <button style={styles.deleteBtn} onClick={() => handleDelete(p._id)}>
+                                        Delete
+                                    </button>
                                 </div>
                             </div>
                         ))}
@@ -93,13 +106,13 @@ const AdminDashboard = () => {
                 {activeTab === 'orders' && (
                     <div>
                         <h2>All Orders</h2>
-                        {orders.map(o => (
+                        {orders.length === 0 ? <p>No orders yet!</p> : orders.map(o => (
                             <div key={o._id} style={styles.card}>
                                 <div>
-                                    <p><strong>Customer:</strong> {o.customer?.name}</p>
-                                    <p><strong>Total:</strong> ₹{o.totalAmount}</p>
-                                    <p><strong>Items:</strong> {o.items.length}</p>
-                                    <p><strong>Status:</strong> {o.status}</p>
+                                    <p style={{margin:'0 0 0.25rem'}}><strong>Customer:</strong> {o.customer?.name}</p>
+                                    <p style={{margin:'0 0 0.25rem'}}><strong>Total:</strong> ₹{o.totalAmount}</p>
+                                    <p style={{margin:'0 0 0.25rem'}}><strong>Items:</strong> {o.items.length}</p>
+                                    <p style={{margin:'0'}}><strong>Address:</strong> {o.shippingAddress?.city}, {o.shippingAddress?.state}</p>
                                 </div>
                                 <select
                                     style={styles.select}
@@ -128,13 +141,16 @@ const styles = {
     welcome: { color:'white', marginRight:'1rem' },
     logoutBtn: { padding:'0.5rem 1rem', background:'#ef4444', color:'white', border:'none', borderRadius:'5px', cursor:'pointer' },
     main: { padding:'2rem' },
-    tabs: { marginBottom:'1.5rem' },
-    tab: { padding:'0.75rem 1.5rem', marginRight:'0.5rem', background:'white', border:'1px solid #ddd', borderRadius:'5px', cursor:'pointer' },
-    activeTab: { padding:'0.75rem 1.5rem', marginRight:'0.5rem', background:'#7c3aed', color:'white', border:'none', borderRadius:'5px', cursor:'pointer' },
+    tabs: { marginBottom:'1.5rem', display:'flex', gap:'0.5rem' },
+    tab: { padding:'0.75rem 1.5rem', background:'white', border:'1px solid #ddd', borderRadius:'5px', cursor:'pointer', fontSize:'1rem' },
+    activeTab: { padding:'0.75rem 1.5rem', background:'#7c3aed', color:'white', border:'none', borderRadius:'5px', cursor:'pointer', fontSize:'1rem' },
     card: { background:'white', padding:'1.5rem', borderRadius:'10px', boxShadow:'0 2px 8px rgba(0,0,0,0.1)', marginBottom:'1rem', display:'flex', justifyContent:'space-between', alignItems:'center' },
-    approveBtn: { padding:'0.5rem 1rem', background:'#059669', color:'white', border:'none', borderRadius:'5px', cursor:'pointer', marginRight:'0.5rem' },
+    cardLeft: { display:'flex', gap:'1rem', alignItems:'center' },
+    cardRight: { display:'flex', gap:'0.5rem' },
+    productImg: { width:'80px', height:'80px', objectFit:'cover', borderRadius:'8px' },
+    approveBtn: { padding:'0.5rem 1rem', background:'#059669', color:'white', border:'none', borderRadius:'5px', cursor:'pointer' },
     deleteBtn: { padding:'0.5rem 1rem', background:'#ef4444', color:'white', border:'none', borderRadius:'5px', cursor:'pointer' },
-    select: { padding:'0.5rem', borderRadius:'5px', border:'1px solid #ddd' }
+    select: { padding:'0.5rem', borderRadius:'5px', border:'1px solid #ddd', fontSize:'0.9rem' }
 }
 
 export default AdminDashboard

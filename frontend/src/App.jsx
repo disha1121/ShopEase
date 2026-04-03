@@ -5,6 +5,7 @@ import Register from './pages/Register'
 import Home from './pages/Home'
 import SellerDashboard from './pages/SellerDashboard'
 import AdminDashboard from './pages/AdminDashboard'
+import Checkout from './pages/Checkout'
 
 // Protected Route
 const ProtectedRoute = ({ children, allowedRoles }) => {
@@ -24,6 +25,11 @@ const App = () => {
                     <Route path="/" element={
                         <ProtectedRoute allowedRoles={['customer']}>
                             <Home />
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/checkout/:id" element={
+                        <ProtectedRoute allowedRoles={['customer']}>
+                            <Checkout />
                         </ProtectedRoute>
                     } />
                     <Route path="/seller" element={

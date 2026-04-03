@@ -19,6 +19,7 @@ export const login = (data) => API.post('/auth/login', data)
 
 // Products
 export const getProducts = () => API.get('/products')
+export const getAdminProducts = () => API.get('/products/admin/all')
 export const addProduct = (data) => API.post('/products', data)
 export const approveProduct = (id) => API.put(`/products/${id}/approve`)
 export const deleteProduct = (id) => API.delete(`/products/${id}`)

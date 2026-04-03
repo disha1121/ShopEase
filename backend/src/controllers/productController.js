@@ -1,6 +1,7 @@
 const Product = require('../models/Product')
+const { uploadImage } = require('../config/cloudinary')
 
-// Get all approved products (customer)
+// Get all approved products
 const getProducts = async (req, res) => {
     try {
         const products = await Product.find({ isApproved: true })
@@ -25,18 +26,26 @@ const getProduct = async (req, res) => {
     }
 }
 
-// Add product (seller only)
+// Add product with image (seller only)
 const addProduct = async (req, res) => {
     try {
         const { name, description, price, category, stock } = req.body
+
+        let imageUrl = ''
+        if (req.file) {
+            imageUrl = await uploadImage(req.file.buffer, req.file.mimetype)
+        }
+
         const product = await Product.create({
             name,
             description,
             price,
             category,
             stock,
+            images: imageUrl ? [imageUrl] : [],
             seller: req.user.id
         })
+
         res.status(201).json({ message: 'Product added, pending approval', product })
     } catch (error) {
         res.status(500).json({ message: error.message })
@@ -66,5 +75,15 @@ const deleteProduct = async (req, res) => {
         res.status(500).json({ message: error.message })
     }
 }
+// Get ALL products including unapproved (admin only)
+const getAllProductsAdmin = async (req, res) => {
+    try {
+        const products = await Product.find()
+            .populate('seller', 'name email')
+        res.json(products)
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+}
 
-module.exports = { getProducts, getProduct, addProduct, approveProduct, deleteProduct }
+module.exports = { getProducts, getProduct, addProduct, approveProduct, deleteProduct, getAllProductsAdmin }
