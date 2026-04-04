@@ -51,11 +51,12 @@
 }
 
 body {
-  margin: 0;
+  overflow-x: hidden;
+  width: 100vw;
 }
 
 #root {
-  width: 1126px;
+  width: 100vw;
   max-width: 100%;
   margin: 0 auto;
   text-align: center;
@@ -64,6 +65,7 @@ body {
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+   min-height: 100vh;
 }
 
 h1,
@@ -108,4 +110,9 @@ code {
   line-height: 135%;
   padding: 4px 8px;
   background: var(--code-bg);
+}
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }

@@ -16,141 +16,321 @@ const AdminDashboard = () => {
     }, [])
 
     const fetchProducts = async () => {
-        try {
-            const { data } = await getAdminProducts()
-            setProducts(data)
-        } catch (err) { console.log(err) }
+        const { data } = await getAdminProducts()
+        setProducts(data)
     }
 
     const fetchOrders = async () => {
-        try {
-            const { data } = await getAllOrders()
-            setOrders(data)
-        } catch (err) { console.log(err) }
+        const { data } = await getAllOrders()
+        setOrders(data)
     }
 
     const handleApprove = async (id) => {
-        try {
-            await approveProduct(id)
-            fetchProducts()
-        } catch (err) { console.log(err) }
+        await approveProduct(id)
+        fetchProducts()
     }
 
     const handleDelete = async (id) => {
-        try {
-            await deleteProduct(id)
-            fetchProducts()
-        } catch (err) { console.log(err) }
+        await deleteProduct(id)
+        fetchProducts()
     }
 
     const handleStatusUpdate = async (id, status) => {
-        try {
-            await updateOrderStatus(id, status)
-            fetchOrders()
-        } catch (err) { console.log(err) }
+        await updateOrderStatus(id, status)
+        fetchOrders()
     }
 
     return (
         <div style={styles.container}>
-            <nav style={styles.nav}>
-                <h1 style={styles.logo}>👑 Admin Dashboard</h1>
-                <div>
-                    <span style={styles.welcome}>Hi, {user?.name}!</span>
-                    <button onClick={() => { logoutUser(); navigate('/login') }} style={styles.logoutBtn}>Logout</button>
-                </div>
-            </nav>
 
-            <div style={styles.main}>
-                <div style={styles.tabs}>
-                    <button style={activeTab === 'products' ? styles.activeTab : styles.tab} onClick={() => setActiveTab('products')}>
-                        Products ({products.length})
-                    </button>
-                    <button style={activeTab === 'orders' ? styles.activeTab : styles.tab} onClick={() => setActiveTab('orders')}>
-                        Orders ({orders.length})
+            {/* NAV */}
+            <div style={styles.nav}>
+                <h1 style={styles.logo}>Admin Panel</h1>
+
+                <div style={styles.navRight}>
+                    <span style={styles.user}>Hi, {user?.name}</span>
+                    <button onClick={() => { logoutUser(); navigate('/login') }} style={styles.logout}>
+                        Logout
                     </button>
                 </div>
-
-                {activeTab === 'products' && (
-                    <div>
-                        <h2>All Products</h2>
-                        {products.map(p => (
-                            <div key={p._id} style={styles.card}>
-                                <div style={styles.cardLeft}>
-                                    {p.images?.[0] && (
-                                        <img src={p.images[0]} alt={p.name} style={styles.productImg} />
-                                    )}
-                                    <div>
-                                        <h3 style={{margin:'0 0 0.5rem'}}>{p.name}</h3>
-                                        <p style={{margin:'0', color:'#666'}}>₹{p.price} | {p.category} | Stock: {p.stock}</p>
-                                        <p style={{margin:'0.25rem 0', color:'#888'}}>Seller: {p.seller?.name}</p>
-                                        <p style={{margin:'0', color: p.isApproved ? 'green' : 'orange'}}>
-                                            {p.isApproved ? '✅ Approved' : '⏳ Pending Approval'}
-                                        </p>
-                                    </div>
-                                </div>
-                                <div style={styles.cardRight}>
-                                    {!p.isApproved && (
-                                        <button style={styles.approveBtn} onClick={() => handleApprove(p._id)}>
-                                            Approve
-                                        </button>
-                                    )}
-                                    <button style={styles.deleteBtn} onClick={() => handleDelete(p._id)}>
-                                        Delete
-                                    </button>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                )}
-
-                {activeTab === 'orders' && (
-                    <div>
-                        <h2>All Orders</h2>
-                        {orders.length === 0 ? <p>No orders yet!</p> : orders.map(o => (
-                            <div key={o._id} style={styles.card}>
-                                <div>
-                                    <p style={{margin:'0 0 0.25rem'}}><strong>Customer:</strong> {o.customer?.name}</p>
-                                    <p style={{margin:'0 0 0.25rem'}}><strong>Total:</strong> ₹{o.totalAmount}</p>
-                                    <p style={{margin:'0 0 0.25rem'}}><strong>Items:</strong> {o.items.length}</p>
-                                    <p style={{margin:'0'}}><strong>Address:</strong> {o.shippingAddress?.city}, {o.shippingAddress?.state}</p>
-                                </div>
-                                <select
-                                    style={styles.select}
-                                    value={o.status}
-                                    onChange={(e) => handleStatusUpdate(o._id, e.target.value)}
-                                >
-                                    <option value="pending">Pending</option>
-                                    <option value="processing">Processing</option>
-                                    <option value="shipped">Shipped</option>
-                                    <option value="delivered">Delivered</option>
-                                    <option value="cancelled">Cancelled</option>
-                                </select>
-                            </div>
-                        ))}
-                    </div>
-                )}
             </div>
+
+            {/* TABS */}
+            <div style={styles.tabs}>
+                <button
+                    style={activeTab === 'products' ? styles.activeTab : styles.tab}
+                    onClick={() => setActiveTab('products')}
+                >
+                    Products ({products.length})
+                </button>
+
+                <button
+                    style={activeTab === 'orders' ? styles.activeTab : styles.tab}
+                    onClick={() => setActiveTab('orders')}
+                >
+                    Orders ({orders.length})
+                </button>
+            </div>
+
+            {/* PRODUCTS */}
+            {activeTab === 'products' && (
+                <div style={styles.grid}>
+                    {products.map(p => (
+                        <div
+                            key={p._id}
+                            style={styles.card}
+                            onMouseEnter={e => {
+                                e.currentTarget.style.transform = 'translateY(-8px)'
+                                e.currentTarget.style.boxShadow = '0 15px 40px rgba(0,0,0,0.4)'
+                            }}
+                            onMouseLeave={e => {
+                                e.currentTarget.style.transform = 'translateY(0)'
+                                e.currentTarget.style.boxShadow = 'none'
+                            }}
+                        >
+                            <img src={p.images?.[0]} style={styles.img} />
+
+                            <h3 style={styles.title}>{p.name}</h3>
+
+                            <p style={styles.price}>₹{p.price}</p>
+
+                            <p style={styles.meta}>
+                                {p.category} • Stock: {p.stock}
+                            </p>
+
+                            <p style={styles.seller}>{p.seller?.name}</p>
+
+                            <div style={styles.bottom}>
+                                <span style={{
+                                    color: p.isApproved ? '#22c55e' : '#f59e0b',
+                                    fontWeight: 600
+                                }}>
+                                    {p.isApproved ? 'Approved' : 'Pending'}
+                                </span>
+
+                                {!p.isApproved && (
+                                    <button style={styles.approveBtn} onClick={() => handleApprove(p._id)}>
+                                        Approve
+                                    </button>
+                                )}
+
+                                <button style={styles.deleteBtn} onClick={() => handleDelete(p._id)}>
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {/* ORDERS */}
+            {activeTab === 'orders' && (
+                <div style={styles.orderWrap}>
+                    {orders.map(o => (
+                        <div
+                            key={o._id}
+                            style={styles.orderCard}
+                            onMouseEnter={e => {
+                                e.currentTarget.style.transform = 'translateY(-6px)'
+                                e.currentTarget.style.boxShadow = '0 12px 30px rgba(0,0,0,0.4)'
+                            }}
+                            onMouseLeave={e => {
+                                e.currentTarget.style.transform = 'translateY(0)'
+                                e.currentTarget.style.boxShadow = 'none'
+                            }}
+                        >
+                            <div>
+                                <p style={styles.orderName}>{o.customer?.name}</p>
+                                <p style={styles.orderAmount}>₹{o.totalAmount}</p>
+                                <p style={styles.orderMeta}>{o.items.length} items</p>
+                                <p style={styles.orderMeta}>{o.shippingAddress?.city}</p>
+                            </div>
+
+                            <select
+                                style={styles.select}
+                                value={o.status}
+                                onChange={(e) => handleStatusUpdate(o._id, e.target.value)}
+                            >
+                                <option value="pending">Pending</option>
+                                <option value="processing">Processing</option>
+                                <option value="shipped">Shipped</option>
+                                <option value="delivered">Delivered</option>
+                            </select>
+                        </div>
+                    ))}
+                </div>
+            )}
         </div>
     )
 }
 
+/* ---------- STYLES ---------- */
+
 const styles = {
-    container: { minHeight:'100vh', background:'#f0f2f5' },
-    nav: { background:'#7c3aed', padding:'1rem 2rem', display:'flex', justifyContent:'space-between', alignItems:'center' },
-    logo: { color:'white', margin:0 },
-    welcome: { color:'white', marginRight:'1rem' },
-    logoutBtn: { padding:'0.5rem 1rem', background:'#ef4444', color:'white', border:'none', borderRadius:'5px', cursor:'pointer' },
-    main: { padding:'2rem' },
-    tabs: { marginBottom:'1.5rem', display:'flex', gap:'0.5rem' },
-    tab: { padding:'0.75rem 1.5rem', background:'white', border:'1px solid #ddd', borderRadius:'5px', cursor:'pointer', fontSize:'1rem' },
-    activeTab: { padding:'0.75rem 1.5rem', background:'#7c3aed', color:'white', border:'none', borderRadius:'5px', cursor:'pointer', fontSize:'1rem' },
-    card: { background:'white', padding:'1.5rem', borderRadius:'10px', boxShadow:'0 2px 8px rgba(0,0,0,0.1)', marginBottom:'1rem', display:'flex', justifyContent:'space-between', alignItems:'center' },
-    cardLeft: { display:'flex', gap:'1rem', alignItems:'center' },
-    cardRight: { display:'flex', gap:'0.5rem' },
-    productImg: { width:'80px', height:'80px', objectFit:'cover', borderRadius:'8px' },
-    approveBtn: { padding:'0.5rem 1rem', background:'#059669', color:'white', border:'none', borderRadius:'5px', cursor:'pointer' },
-    deleteBtn: { padding:'0.5rem 1rem', background:'#ef4444', color:'white', border:'none', borderRadius:'5px', cursor:'pointer' },
-    select: { padding:'0.5rem', borderRadius:'5px', border:'1px solid #ddd', fontSize:'0.9rem' }
+    container: {
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #0f172a, #020617)',
+        color: 'white',
+        padding: '20px'
+    },
+
+    nav: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        marginBottom: '20px'
+    },
+
+    logo: {
+        fontSize: '1.5rem',
+        fontWeight: '700'
+    },
+
+    navRight: {
+        display: 'flex',
+        gap: '10px',
+        alignItems: 'center'
+    },
+
+    user: { opacity: 0.7 },
+
+    logout: {
+        background: '#ef4444',
+        border: 'none',
+        padding: '6px 12px',
+        borderRadius: '8px',
+        color: 'white',
+        cursor: 'pointer'
+    },
+
+    tabs: {
+        display: 'flex',
+        gap: '10px',
+        marginBottom: '20px'
+    },
+
+    tab: {
+        padding: '8px 16px',
+        background: '#1e293b',
+        borderRadius: '20px',
+        border: '1px solid #334155',
+        cursor: 'pointer',
+        color: '#cbd5f5'
+    },
+
+    activeTab: {
+        padding: '8px 16px',
+        background: 'linear-gradient(135deg, #ec4899, #8b5cf6)',
+        borderRadius: '20px',
+        border: 'none',
+        cursor: 'pointer',
+        color: 'white'
+    },
+
+    grid: {
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
+        gap: '20px'
+    },
+
+    card: {
+        background: 'linear-gradient(145deg, #0f172a, #1e293b)',
+        padding: '15px',
+        borderRadius: '16px',
+        border: '1px solid rgba(255,255,255,0.05)',
+        transition: '0.3s'
+    },
+
+    img: {
+        width: '100%',
+        height: '180px',
+        objectFit: 'contain',   // ✅ FIXED IMAGE CUTTING
+        borderRadius: '12px',
+        background: '#020617'
+    },
+
+    title: { margin: '10px 0 5px' },
+
+    price: { fontWeight: '700' },
+
+    meta: {
+        fontSize: '0.85rem',
+        color: '#94a3b8'
+    },
+
+    seller: {
+        fontSize: '0.75rem',
+        color: '#64748b',
+        marginBottom: '10px'
+    },
+
+    bottom: {
+        display: 'flex',
+        gap: '8px',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        justifyContent: 'space-between'
+    },
+
+    approveBtn: {
+        background: '#22c55e',
+        border: 'none',
+        padding: '5px 10px',
+        borderRadius: '6px',
+        color: 'white',
+        cursor: 'pointer'
+    },
+
+    deleteBtn: {
+        background: '#ef4444',
+        border: 'none',
+        padding: '5px 10px',
+        borderRadius: '6px',
+        color: 'white',
+        cursor: 'pointer'
+    },
+
+    orderWrap: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '15px'
+    },
+
+    orderCard: {
+        background: 'linear-gradient(145deg, #020617, #1e293b)',
+        padding: '16px',
+        borderRadius: '14px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        border: '1px solid rgba(255,255,255,0.05)',
+        transition: '0.3s',
+        position: 'relative',
+        zIndex: 1   // ✅ FIX overlap issue
+    },
+
+    orderName: {
+        fontWeight: '600',
+        marginBottom: '4px'
+    },
+
+    orderAmount: {
+        fontWeight: '700',
+        marginBottom: '4px'
+    },
+
+    orderMeta: {
+        fontSize: '0.85rem',
+        color: '#94a3b8'
+    },
+
+    select: {
+        background: '#020617',
+        color: 'white',
+        border: '1px solid #334155',
+        borderRadius: '8px',
+        padding: '6px 10px',
+        cursor: 'pointer'
+    }
 }
 
 export default AdminDashboard

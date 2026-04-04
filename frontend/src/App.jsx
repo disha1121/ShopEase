@@ -6,7 +6,7 @@ import Home from './pages/Home'
 import SellerDashboard from './pages/SellerDashboard'
 import AdminDashboard from './pages/AdminDashboard'
 import Checkout from './pages/Checkout'
-
+import MyOrders from './pages/MyOrders'
 // Protected Route
 const ProtectedRoute = ({ children, allowedRoles }) => {
     const { user } = useAuth()
@@ -37,6 +37,11 @@ const App = () => {
                             <SellerDashboard />
                         </ProtectedRoute>
                     } />
+                    <Route path="/my-orders" element={
+    <ProtectedRoute allowedRoles={['customer']}>
+        <MyOrders />
+    </ProtectedRoute>
+} />
                     <Route path="/admin" element={
                         <ProtectedRoute allowedRoles={['admin']}>
                             <AdminDashboard />
